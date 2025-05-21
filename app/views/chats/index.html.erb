@@ -1,0 +1,11 @@
+<h1 class="text-xl font-bold mb-4">Omni Pulse Assistant</h1>
+
+<div id="messages" class="space-y-2">
+  <%= turbo_stream_from @conversation %>
+  <%= render @chat_messages %>
+</div>
+
+<%= form_with model: [@conversation, ChatMessage.new], data: { controller: "chat" } do |f| %>
+  <%= f.text_area :content, rows: 2, class: "w-full border p-2", placeholder: "Ask me anything…" %>
+  <%= f.submit "Send", class: "btn btn-primary mt-2" %>
+<% end %>
