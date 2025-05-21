@@ -47,8 +47,15 @@ group :development, :test do
   # Static analysis for security vulnerabilities [https://brakemanscanner.org/]
   gem "brakeman", require: false
 
-  # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
-  gem "rubocop-rails-omakase", require: false
+  gem "rspec-rails"          # Test framework
+  gem "factory_bot_rails"    # Test fixtures
+  gem "faker"                # Sample data
+  gem "database_cleaner-active_record"
+  gem "bullet"               # N+1 query alerts
+  gem "pry-rails"            # Better console
+end
+
+group :development do
   gem "rubocop",          require: false
   gem "rubocop-rails",    require: false
   gem "rubocop-performance", require: false
@@ -57,9 +64,6 @@ group :development, :test do
   gem "overcommit"        # Git hook runner
   gem "annotate"          # Adds schema comments to models
   gem "dotenv-rails"      # ENV management
-end
-
-group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console"
 end

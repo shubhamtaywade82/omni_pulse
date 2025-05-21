@@ -1,0 +1,8 @@
+PreCommit:
+  RuboCop:
+    enabled: true
+    command: ["bundle", "exec", "rubocop", "--force-exclusion"]
+  Standard:
+    enabled: false
+  Annotate:
+    enabled: true

@@ -1,39 +1,90 @@
 name: CI
 
 on:
-  pull_request:
   push:
     branches: [ main ]
+  pull_request:
+
+# -------------------------------------------------------------------
+# Shared step template (uses YAML anchors)
+# -------------------------------------------------------------------
+defaults:
+  run:
+    shell: bash
 
 jobs:
-  scan_ruby:
+  # ---------------------------------------------------------------
+  # Security scan (Brakeman)
+  # ---------------------------------------------------------------
+  security:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
+      - uses: ruby/setup-ruby@v1
         with:
           ruby-version: .ruby-version
           bundler-cache: true
 
-      - name: Scan for common Rails security vulnerabilities using static analysis
-        run: bin/brakeman --no-pager
+      - name: Static-analysis: Brakeman
+        run: bin/brakeman --no-pager --color
 
+  # ---------------------------------------------------------------
+  # Linting (RuboCop)
+  # ---------------------------------------------------------------
   lint:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
 
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
         with:
           ruby-version: .ruby-version
           bundler-cache: true
 
-      - name: Lint code for consistent style
-        run: bin/rubocop -f github
+      - name: Lint: RuboCop
+        run: bin/rubocop -f github --parallel
 
+  # ---------------------------------------------------------------
+  # Test suite (RSpec) with PostgreSQL
+  # ---------------------------------------------------------------
+  test:
+    runs-on: ubuntu-latest
+
+    # Spin-up a Postgres service container the test DB can talk to
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: omni_pulse_test
+        options: >-
+          --health-cmd "pg_isready -d omni_pulse_test -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports: [ '5432:5432' ]
+
+    env:
+      RAILS_ENV: test
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/omni_pulse_test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
+
+      # Prepare the test database schema
+      - name: Set up database
+        run: |
+          cp config/database.yml config/database.yml.ci
+          bin/rails db:prepare
+
+      - name: Run RSpec
+        run: bundle exec rspec --format documentation
