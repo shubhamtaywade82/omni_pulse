@@ -77,3 +77,5 @@ group :test do
   gem 'vcr'               # Record HTTP responses
   gem 'webmock'           # Stub external calls
 end
+
+gem 'tiktoken_ruby'

@@ -8,16 +8,18 @@ class ChatsController < ApplicationController
   end
 
   def create
-    @chat_messages = @conversation.chat_messages
-    @chat_messages.create!(chat_params.merge(role: :user))
+    # 1. store user message
+    @conversation.chat_messages.create!(role: :user, content: chat_params[:content])
 
-    # Kick off async streaming job (Step 4 will add OpenAI logic)
-    OpenaiChatJob.perform_later(@conversation.id)
+    # 2. kick async job with routing context
+    ctx = RequestContext.new(
+      prompt: chat_params[:content],
+      headers: request.headers,
+      params: safe_context_params # ← only permitted keys
+    )
+    OpenaiChatJob.perform_later(@conversation.id, ctx.to_h) # serialize as hash
 
-    respond_to do |format|
-      format.turbo_stream
-      format.html { redirect_to root_path }
-    end
+    respond_to { |f| f.turbo_stream }
   end
 
   private
@@ -28,5 +30,9 @@ class ChatsController < ApplicationController
 
   def chat_params
     params.expect(chat_message: [:content])
+  end
+
+  def safe_context_params
+    params.permit(:deep_reason).to_h
   end
 end

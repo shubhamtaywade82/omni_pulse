@@ -5,7 +5,10 @@
   <%= render @chat_messages %>
 </div>
 
-<%= form_with model: [@conversation, ChatMessage.new], data: { controller: "chat" } do |f| %>
-  <%= f.text_area :content, rows: 2, class: "w-full border p-2", placeholder: "Ask me anything…" %>
+<%= form_with url: conversation_chats_path(@conversation),
+              scope: :chat_message,
+              data: { controller: "chat" } do |f| %>
+  <%= f.text_area :content, rows: 2, class: "w-full border p-2",
+                   placeholder: "Ask me anything…" %>
   <%= f.submit "Send", class: "btn btn-primary mt-2" %>
 <% end %>
