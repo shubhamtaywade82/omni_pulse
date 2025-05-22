@@ -23,10 +23,10 @@ class ChatsController < ApplicationController
   private
 
   def set_conversation
-    @conversation = Conversation.first_or_create!(title: "Default")
+    @conversation = Conversation.first_or_create!(title: 'Default')
   end
 
   def chat_params
-    params.require(:chat_message).permit(:content)
+    params.expect(chat_message: [:content])
   end
 end
