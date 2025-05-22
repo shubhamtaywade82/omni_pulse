@@ -1,0 +1,11 @@
+<% theirs = chat_message.assistant? || chat_message.system? %>
+
+<div class="flex <%= theirs ? '' : 'justify-end' %>">
+  <div
+    class="max-w-xs px-4 py-3 rounded-2xl shadow
+           <%= theirs ?
+                'bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-gray-100' :
+                'bg-indigo-600 text-white' %>">
+    <%= simple_format chat_message.content %>
+  </div>
+</div>
